@@ -29,14 +29,13 @@ function Human (weight, height, diet) {
 Human.prototype = Object.create(Creature.prototype);
 Human.prototype.constructor = Human;
 
-
 // Create Dino Objects
 
-const myModule = (function() {
+const dinoFactory = (function() {
 
     let dinos = [];
 
-    async function getDinoJSON (dinoPath) {
+    async function _getDinoJSON (dinoPath) {
         try {
             const response = await fetch(dinoPath);
             const jsonData = await response.json();
@@ -47,40 +46,63 @@ const myModule = (function() {
         }
     }
     
-    async function createDinos () {
-        const dinoJSON = await getDinoJSON('./dino.json');
+    async function _createDinos () {
+        const dinoJSON = await _getDinoJSON('./dino.json');
         const dinoData = dinoJSON['Dinos'];
         for (let dino of dinoData) {
-            dinos.push(Object.assign(new Dinosaur, dino));
+            dinos.push(Object.assign(Object.create(Dinosaur.prototype), dino));
         }
     }
 
-    function createHuman () {
-        const human = new Human(90,180,'omnivore');
-        return human;
+    function getDinos () {
+        return dinos;
     }
 
     function init () {
-        createDinos();
+        _createDinos();
     }
 
     return {
         init: init,
-        dinos: dinos,
-        createHuman: createHuman
+        getDinos: getDinos
     }
 
 })();
 
-myModule.init();
-const dinos = myModule.dinos;
-const human = myModule.createHuman();
+dinoFactory.init();
+const dinos = dinoFactory.getDinos();
 console.log(dinos);
-console.log(myModule);
 
-// Create Human Object
+const UIHandler = (function() {
 
-// Use IIFE to get human data from form
+    let human = {};
+
+    function createGrid (dinos) {
+        let grid = document.getElementById('grid');
+    }
+
+    function onSubmit () {
+        let form = document.getElementById('dino-compare');
+        let name = document.getElementById('name').value;
+        let weight = parseInt(document.getElementById('weight').value);
+        // alternative object creation: new Human(weight, height, diet)
+        human = Object.assign(Object.create(Human.prototype), { name: name, weight: weight });
+        console.log(human);
+    }
+
+    function init () {
+        let submitButton = document.getElementById('btn');
+        submitButton.addEventListener('click', onSubmit);
+    }
+
+    return {
+        init: init
+    }
+
+})();
+
+document.addEventListener('DOMContentLoaded', UIHandler.init);
+
 
 
 // Create Dino Compare Method 1
