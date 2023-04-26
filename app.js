@@ -19,10 +19,11 @@ Dinosaur.prototype = Object.create(Creature.prototype);
 Dinosaur.prototype.constructor = Dinosaur;
 
 // Subclass constructor
-function Human (weight, height, diet) {
+function Human (weight, height, diet, name) {
     // call constructor of superclass
     Creature.call(this, weight, height, diet);
     this.species = 'Human';
+    this.name = name;
 }
 
 // Setting up the prototype chain between superclass and subclass
@@ -50,7 +51,7 @@ const dinoFactory = (function() {
         const dinoJSON = await _getDinoJSON('./dino.json');
         const dinoData = dinoJSON['Dinos'];
         for (let dino of dinoData) {
-            dinos.push(Object.assign(Object.create(Dinosaur.prototype), dino));
+            dinos.push(Object.assign(new Dinosaur(), dino));
         }
     }
 
@@ -71,23 +72,55 @@ const dinoFactory = (function() {
 
 dinoFactory.init();
 const dinos = dinoFactory.getDinos();
-console.log(dinos);
 
 const UIHandler = (function() {
 
-    let human = {};
+    let _dinos = [];
+    let _human = {};
 
-    function createGrid (dinos) {
+    function _createGrid () {
         let grid = document.getElementById('grid');
+
+        // prepare the array (human in the middle)
+        // determine the midpoint of the array
+        const middle = _dinos.length / 2;
+        // insert human in the middle
+        _dinos.splice(middle, 0, _human);
+
+        // create the tiles
+        for (let tile of _dinos) {
+            const gridElement = document.createElement('div');
+            gridElement.textContent = tile.species;
+            gridElement.className = 'grid-item';
+
+            // add image
+            const tileImage = document.createElement('img');
+            const imgURL = './images/' + tile.species.toLowerCase() + '.png';
+            tileImage.src = imgURL;
+            gridElement.appendChild(tileImage);
+
+            grid.appendChild(gridElement);
+        }
+    }
+
+    function _feetAndInchesToInches(feet, inches) {
+        return feet * 12 + inches;
     }
 
     function onSubmit () {
         let form = document.getElementById('dino-compare');
         let name = document.getElementById('name').value;
         let weight = parseInt(document.getElementById('weight').value);
-        // alternative object creation: new Human(weight, height, diet)
-        human = Object.assign(Object.create(Human.prototype), { name: name, weight: weight });
-        console.log(human);
+
+        // convert feet and inches into inches
+        let feet = parseInt(document.getElementById('feet').value);
+        let inches = parseInt(document.getElementById('inches').value);
+        let height = _feetAndInchesToInches(feet, inches);
+
+        _human = Object.assign(new Human(), { name: name, weight: weight, height: height });
+        console.log(_human);
+        form.remove();
+        _createGrid(dinos);
     }
 
     function init () {
@@ -95,14 +128,19 @@ const UIHandler = (function() {
         submitButton.addEventListener('click', onSubmit);
     }
 
+    function setDinos (dinos) {
+        _dinos = dinos;
+    }
+
     return {
-        init: init
+        init: init,
+        setDinos: setDinos
     }
 
 })();
 
+UIHandler.setDinos(dinos);
 document.addEventListener('DOMContentLoaded', UIHandler.init);
-
 
 
 // Create Dino Compare Method 1
