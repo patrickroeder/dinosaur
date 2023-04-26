@@ -99,7 +99,9 @@ const UIHandler = (function() {
         }
 
         // randomize fact pool (destructively)
-        _facts.sort(() => Math.random() - 0.5);
+        _facts.sort(function () {
+            return Math.random() - 0.5;
+        });
 
         // check if weight property on human exists
         if ('weight' in _human) {
@@ -107,7 +109,7 @@ const UIHandler = (function() {
             if (!isNaN(_human.weight)) {
                 // insert at start so it is always visible
                 // TODO: do actual comparison
-                _facts.unshift('Weight property given');
+                _facts.unshift(_compareWeight());
             }
         }
 
@@ -122,8 +124,25 @@ const UIHandler = (function() {
         }
     }
 
+    function _findHeaviestDino () {
+        // select the heaviest from the list of dinos
+        let heaviestDino = {
+            species: '',
+            weight: 0
+        };
+        for (let dino of _dinos) {
+            if (dino.weight > heaviestDino.weight) {
+                heaviestDino.weight = dino.weight;
+                heaviestDino.species = dino.species;
+            } 
+        }
+        return heaviestDino;
+    }
+
     function _compareWeight () {
-        
+        const heaviestDino = _findHeaviestDino();
+        const heavier = Math.round(heaviestDino.weight / _human.weight);
+        return `A ${heaviestDino.species} is ${heavier} times heavier than you!`;
     }
 
     function _compareHeight () {
@@ -164,6 +183,7 @@ const UIHandler = (function() {
                 factElement.textContent = _facts[factIndex];
             }
             gridElement.appendChild(factElement);
+            // iterate over random fact array
             factIndex++;
 
             grid.appendChild(gridElement);
@@ -209,7 +229,8 @@ const UIHandler = (function() {
 
         // using a constructor function instead of Object.create() in order to initialize the object with properties
         _human = Object.assign(new Human(), { name: name, weight: weight, height: height, diet: diet });
-        console.log(_human);
+        // console.log(_human);
+
         form.remove();
         _generateRandomFacts();
         _createGrid();
