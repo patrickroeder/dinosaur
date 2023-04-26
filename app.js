@@ -87,7 +87,7 @@ const UIHandler = (function() {
         return feet * 12 + inches;
     }
 
-    // generate random facts and compare
+    // generate random facts
 
     function _generateRandomFacts () {
         for (let dino of _dinos) {
@@ -106,31 +106,32 @@ const UIHandler = (function() {
         if ('weight' in _human) {
             // check if weight property is a number
             if (!isNaN(_human.weight)) {
-                // insert at start so it is always visible
-                // TODO: do actual comparison
+                // insert at start of facts array so it is always visible
                 _facts.unshift(_compareWeight());
             }
         }
 
-        // check if weight property on human exists
+        // check if height property on human exists
         if ('height' in _human) {
-            // check if weight property is a number
+            // check if height property is a number
             if (!isNaN(_human.height)) {
-                // insert at start so it is always visible
-                // TODO: do actual comparison
-                _facts.unshift('Height property given');
+                // insert at start of facts array so it is always visible
+                _facts.unshift(_compareHeight());
             }
         }
 
         console.log(_facts);
     }
 
+    // comparison functions
+    
     function _findHeaviestDino () {
-        // select the heaviest from the list of dinos
+        // initialize an object which will contain the heaviest dino
         let heaviestDino = {
             species: '',
             weight: 0
         };
+        // select the heaviest from the list of dinos
         for (let dino of _dinos) {
             if (dino.weight > heaviestDino.weight) {
                 heaviestDino.weight = dino.weight;
@@ -140,6 +141,22 @@ const UIHandler = (function() {
         return heaviestDino;
     }
 
+    function _findTallestDino () {
+        // initialize an object which will contain the tallest dino
+        let tallestDino = {
+            species: '',
+            height: 0
+        };
+        // select the tallest from the list of dinos
+        for (let dino of _dinos) {
+            if (dino.height > tallestDino.height) {
+                tallestDino.height = dino.height;
+                tallestDino.species = dino.species;
+            } 
+        }
+        return tallestDino;
+    }
+
     function _compareWeight () {
         const heaviestDino = _findHeaviestDino();
         const heavier = Math.round(heaviestDino.weight / _human.weight);
@@ -147,7 +164,9 @@ const UIHandler = (function() {
     }
 
     function _compareHeight () {
-        // stub
+        const tallestDino = _findTallestDino();
+        const taller = Math.round(tallestDino.height / _human.height);
+        return `A ${tallestDino.species} is ${taller} times taller than you!`;
     }
 
     function _compareX () {
