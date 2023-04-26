@@ -75,7 +75,6 @@ const UIHandler = (function() {
 
     let _dinos = [];
     let _human = {};
-    let _facts = [];
 
     // helper functions
 
@@ -87,99 +86,100 @@ const UIHandler = (function() {
         return feet * 12 + inches;
     }
 
-    // generate random facts
-
-    function _generateRandomFacts () {
-        for (let dino of _dinos) {
-            // do not add the pigeon fact from the array
-            if (!(dino.species == 'Pigeon')) {
-                _facts.push(dino.fact);
-            }
-        }
-
-        // randomize fact pool (destructively)
-        _facts.sort(function () {
-            return Math.random() - 0.5;
-        });
-
-        // check if weight property on human exists
-        if ('weight' in _human) {
-            // check if weight property is a number
-            if (!isNaN(_human.weight)) {
-                // insert at start of facts array so it is always visible
-                _facts.unshift(_compareWeight());
-            }
-        }
-
-        // check if height property on human exists
-        if ('height' in _human) {
-            // check if height property is a number
-            if (!isNaN(_human.height)) {
-                // insert at start of facts array so it is always visible
-                _facts.unshift(_compareHeight());
-            }
-        }
-
-        console.log(_facts);
+    function _getRandomElement (array) {
+        const randomIndex = Math.floor(Math.random() * array.length);
+        return array[randomIndex];
     }
 
     // comparison functions
-    
-    function _findHeaviestDino () {
-        // initialize an object which will contain the heaviest dino
-        let heaviestDino = {
-            species: '',
-            weight: 0
-        };
-        // select the heaviest from the list of dinos
-        for (let dino of _dinos) {
-            if (dino.weight > heaviestDino.weight) {
-                heaviestDino.weight = dino.weight;
-                heaviestDino.species = dino.species;
-            } 
-        }
-        return heaviestDino;
+
+    function _compareWeight (dino) {
+        const heavier = Math.round(dino.weight / _human.weight);
+        return `A ${dino.species} is ${heavier} times heavier than you!`;
     }
 
-    function _findTallestDino () {
-        // initialize an object which will contain the tallest dino
-        let tallestDino = {
-            species: '',
-            height: 0
-        };
-        // select the tallest from the list of dinos
-        for (let dino of _dinos) {
-            if (dino.height > tallestDino.height) {
-                tallestDino.height = dino.height;
-                tallestDino.species = dino.species;
-            } 
-        }
-        return tallestDino;
-    }
-
-    function _compareWeight () {
-        const heaviestDino = _findHeaviestDino();
-        const heavier = Math.round(heaviestDino.weight / _human.weight);
-        return `A ${heaviestDino.species} is ${heavier} times heavier than you!`;
-    }
-
-    function _compareHeight () {
-        const tallestDino = _findTallestDino();
-        const taller = Math.round(tallestDino.height / _human.height);
-        return `A ${tallestDino.species} is ${taller} times taller than you!`;
+    function _compareHeight (dino) {
+        const taller = Math.round(dino.height / _human.height);
+        return `A ${dino.species} is ${taller} times taller than you!`;
     }
 
     function _compareX () {
         // stub
     }
 
+    function _generateRandomFact(dino) {
+        let fact = '';
+        // add specific fact paragraph text for pigeon tile, else add random facts
+        if (dino.species == 'Pigeon') {
+            fact = dino.fact;
+        } else {
+            const keys = ['weight', 'height', 'diet', 'where', 'when', 'fact'];
+            
+            // check if weight property exists on human
+            if ('weight' in _human) {
+                // check if weight property is a number
+                if (!isNaN(_human.weight)) {
+                    keys.push('human_weight');
+                }
+            }
+            // check if height property exists on human
+            if ('height' in _human) {
+                // check if height property is a number
+                if (!isNaN(_human.height)) {
+                    keys.push('human_height');
+                }
+            }
+
+            // randomize keys
+            const key = _getRandomElement(keys);
+            console.log(key);
+
+            switch (key) {
+                case 'weight':
+                    fact = `${dino.species} weighs ${dino.weight} lbs.`;
+                    break;
+                
+                case 'height':
+                    fact = `${dino.species} is ${dino.height} feet tall.`;
+                    break;
+                
+                case 'diet':
+                    fact = `${dino.species} is a ${dino.diet}.`;
+                    break;
+
+                case 'where':
+                    fact = `${dino.species} lives in ${dino.where}.`;
+                    break;
+
+                case 'when':
+                    fact = `${dino.species} lived in the ${dino.when} time period.`;
+                    break;
+                
+                case 'fact':
+                    fact = dino.fact;
+                    break;
+
+                case 'human_height':
+                    fact = _compareHeight(dino);
+                    break;
+
+                case 'human_weight':
+                    fact = _compareWeight(dino);
+                    break;
+            
+                default:
+                    break;
+            }
+        }
+        return fact;
+    }
+
     // create the dino grid 
 
-    function _createGrid () {
+    function _createDinoGrid () {
         let grid = document.getElementById('grid');
 
         // create the dino tile grid
-        let factIndex = 0;
         for (let dino of _dinos) {
             const gridElement = document.createElement('div');
             gridElement.className = 'grid-item';
@@ -194,17 +194,10 @@ const UIHandler = (function() {
             tileImage.src = _createTileImageURL(dino);
             gridElement.appendChild(tileImage);
 
-            // add fact paragraph
+            // add fact paragraph 
             const factElement = document.createElement('p');
-            // add specific fact paragraph text for pigeon tile, else add facts from fact pool
-            if (dino.species == 'Pigeon') {
-                factElement.textContent = dino.fact;
-            } else {
-                factElement.textContent = _facts[factIndex];
-            }
+            factElement.textContent = _generateRandomFact(dino);
             gridElement.appendChild(factElement);
-            // iterate over random fact array
-            factIndex++;
 
             grid.appendChild(gridElement);
         }
@@ -221,9 +214,10 @@ const UIHandler = (function() {
         headlineElement.textContent = _human.name || _human.species;
         humanTile.appendChild(headlineElement);
         
-        // add the human tile as a sibling node
+        // add the human tile as a sibling node in the middle
         const parentElement = document.getElementById('grid');
-        const referenceNode = parentElement.children[4];
+        const middle = _dinos.length / 2;
+        const referenceNode = parentElement.children[middle];
         parentElement.insertBefore(humanTile, referenceNode);
 
         // add image
@@ -252,8 +246,7 @@ const UIHandler = (function() {
         // console.log(_human);
 
         form.remove();
-        _generateRandomFacts();
-        _createGrid();
+        _createDinoGrid();
         _addHumanTile();
     }
 
