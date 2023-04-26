@@ -1,5 +1,3 @@
-// Create Dino Constructor
-
 // Superclass constructor
 function Creature (weight, height, diet) {
     this.weight = weight;
@@ -77,56 +75,155 @@ const UIHandler = (function() {
 
     let _dinos = [];
     let _human = {};
+    let _facts = [];
+
+    // helper functions
+
+    function _createTileImageURL (creature) {
+        return './images/' + creature.species.toLowerCase() + '.png';
+    }
+
+    function _feetAndInchesToInches (feet, inches) {
+        return feet * 12 + inches;
+    }
+
+    // generate random facts and compare
+
+    function _generateRandomFacts () {
+        for (let dino of _dinos) {
+            // do not add the pigeon fact from the array
+            if (dino.species == 'Pigeon') {
+                break;
+            }
+            _facts.push(dino.fact);
+        }
+
+        // randomize fact pool (destructively)
+        _facts.sort(() => Math.random() - 0.5);
+
+        // check if weight property on human exists
+        if ('weight' in _human) {
+            // check if weight property is a number
+            if (!isNaN(_human.weight)) {
+                // insert at start so it is always visible
+                // TODO: do actual comparison
+                _facts.unshift('Weight property given');
+            }
+        }
+
+        // check if weight property on human exists
+        if ('height' in _human) {
+            // check if weight property is a number
+            if (!isNaN(_human.height)) {
+                // insert at start so it is always visible
+                // TODO: do actual comparison
+                _facts.unshift('Height property given');
+            }
+        }
+    }
+
+    function _compareWeight () {
+        
+    }
+
+    function _compareHeight () {
+        // stub
+    }
+
+    function _compareX () {
+        // stub
+    }
+
+    // create the dino grid 
 
     function _createGrid () {
         let grid = document.getElementById('grid');
 
-        // prepare the array (human in the middle)
-        // determine the midpoint of the array
-        const middle = _dinos.length / 2;
-        // insert human in the middle
-        _dinos.splice(middle, 0, _human);
-
-        // create the tiles
-        for (let tile of _dinos) {
+        // create the dino tile grid
+        let factIndex = 0;
+        for (let dino of _dinos) {
             const gridElement = document.createElement('div');
-            gridElement.textContent = tile.species;
             gridElement.className = 'grid-item';
+
+            // add headline with species name
+            const headlineElement = document.createElement('h3');
+            headlineElement.textContent = dino.species;
+            gridElement.appendChild(headlineElement);
 
             // add image
             const tileImage = document.createElement('img');
-            const imgURL = './images/' + tile.species.toLowerCase() + '.png';
-            tileImage.src = imgURL;
+            tileImage.src = _createTileImageURL(dino);
             gridElement.appendChild(tileImage);
+
+            // add fact paragraph
+            const factElement = document.createElement('p');
+            // add specific fact paragraph text for pigeon tile, else add facts from fact pool
+            if (dino.species == 'Pigeon') {
+                factElement.textContent = dino.fact;
+            } else {
+                factElement.textContent = _facts[factIndex];
+            }
+            gridElement.appendChild(factElement);
+            factIndex++;
 
             grid.appendChild(gridElement);
         }
     }
 
-    function _feetAndInchesToInches(feet, inches) {
-        return feet * 12 + inches;
+    // create the human tile
+
+    function _addHumanTile () {
+        const humanTile = document.createElement('div');
+        humanTile.className = 'grid-item';
+
+        // add headline with human name
+        const headlineElement = document.createElement('h3');
+        headlineElement.textContent = _human.name || _human.species;
+        humanTile.appendChild(headlineElement);
+        
+        // add the human tile as a sibling node
+        const parentElement = document.getElementById('grid');
+        const referenceNode = parentElement.children[4];
+        parentElement.insertBefore(humanTile, referenceNode);
+
+        // add image
+        const tileImage = document.createElement('img');
+        tileImage.src = _createTileImageURL(_human);
+        humanTile.appendChild(tileImage);
     }
 
-    function onSubmit () {
+    //  handler for the submit button
+
+    function _onSubmit () {
         let form = document.getElementById('dino-compare');
+
+        // get form data
         let name = document.getElementById('name').value;
         let weight = parseInt(document.getElementById('weight').value);
+        let diet = document.getElementById('diet').value;
 
-        // convert feet and inches into inches
+        // get height data, convert feet and inches into inches
         let feet = parseInt(document.getElementById('feet').value);
         let inches = parseInt(document.getElementById('inches').value);
         let height = _feetAndInchesToInches(feet, inches);
 
-        _human = Object.assign(new Human(), { name: name, weight: weight, height: height });
+        // using a constructor function instead of Object.create() in order to initialize the object with properties
+        _human = Object.assign(new Human(), { name: name, weight: weight, height: height, diet: diet });
         console.log(_human);
         form.remove();
-        _createGrid(dinos);
+        _generateRandomFacts();
+        _createGrid();
+        _addHumanTile();
     }
+
+    // submit button callback
 
     function init () {
         let submitButton = document.getElementById('btn');
-        submitButton.addEventListener('click', onSubmit);
+        submitButton.addEventListener('click', _onSubmit);
     }
+
+    // add the dino data
 
     function setDinos (dinos) {
         _dinos = dinos;
@@ -141,25 +238,3 @@ const UIHandler = (function() {
 
 UIHandler.setDinos(dinos);
 document.addEventListener('DOMContentLoaded', UIHandler.init);
-
-
-// Create Dino Compare Method 1
-// NOTE: Weight in JSON file is in lbs, height in inches. 
-
-    
-// Create Dino Compare Method 2
-// NOTE: Weight in JSON file is in lbs, height in inches.
-
-    
-// Create Dino Compare Method 3
-// NOTE: Weight in JSON file is in lbs, height in inches.
-
-
-// Generate Tiles for each Dino in Array
-  
-// Add tiles to DOM
-
-// Remove form from screen
-
-
-// On button click, prepare and display infographic
