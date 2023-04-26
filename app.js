@@ -92,10 +92,9 @@ const UIHandler = (function() {
     function _generateRandomFacts () {
         for (let dino of _dinos) {
             // do not add the pigeon fact from the array
-            if (dino.species == 'Pigeon') {
-                break;
+            if (!(dino.species == 'Pigeon')) {
+                _facts.push(dino.fact);
             }
-            _facts.push(dino.fact);
         }
 
         // randomize fact pool (destructively)
@@ -122,6 +121,8 @@ const UIHandler = (function() {
                 _facts.unshift('Height property given');
             }
         }
+
+        console.log(_facts);
     }
 
     function _findHeaviestDino () {
