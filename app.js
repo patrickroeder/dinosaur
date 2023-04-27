@@ -1,3 +1,6 @@
+// Set up the 'classes' from which objects are generated:
+// Using prototypal inheritance and constructor functions.
+
 // Superclass constructor
 function Creature (weight, height, diet) {
     this.weight = weight;
@@ -12,7 +15,7 @@ function Dinosaur (weight, height, diet, species) {
     this.species = species;
 }
 
-// Setting up the prototype chain between superclass and subclass
+// Set up the prototype chain between superclass and subclass
 Dinosaur.prototype = Object.create(Creature.prototype);
 Dinosaur.prototype.constructor = Dinosaur;
 
@@ -24,16 +27,17 @@ function Human (weight, height, diet, name) {
     this.name = name;
 }
 
-// Setting up the prototype chain between superclass and subclass
+// Set up the prototype chain between superclass and subclass
 Human.prototype = Object.create(Creature.prototype);
 Human.prototype.constructor = Human;
 
-// Create Dino Objects
+// dinoFactory: A module which generates a dino object array based on JSON data and provides that data.
 
 const dinoFactory = (function() {
 
     let dinos = [];
 
+    // using fetch() to load the local document
     async function _getDinoJSON (dinoPath) {
         try {
             const response = await fetch(dinoPath);
@@ -45,6 +49,7 @@ const dinoFactory = (function() {
         }
     }
     
+    // create the dino data array based on the file contents
     async function _createDinos () {
         const dinoJSON = await _getDinoJSON('./dino.json');
         const dinoData = dinoJSON['Dinos'];
@@ -53,14 +58,17 @@ const dinoFactory = (function() {
         }
     }
 
+    // getter for outside access to dino data
     function getDinos () {
         return dinos;
     }
 
+    // initialize by creating the dino data
     function init () {
         _createDinos();
     }
 
+    // 'public' methods
     return {
         init: init,
         getDinos: getDinos
@@ -68,10 +76,18 @@ const dinoFactory = (function() {
 
 })();
 
+// initialize the dino factory, generate the data
 dinoFactory.init();
+
+// set a global variable which contains the dino array
 const dinos = dinoFactory.getDinos();
 
+// UIHandler: A module which handles the form, generates the grid and performs comparisons
+// based on user input -- a kind of 'controller'.
+
 const UIHandler = (function() {
+
+    // variables private to the module
 
     let _dinos = [];
     let _human = {};
@@ -133,16 +149,19 @@ const UIHandler = (function() {
 
     function _generateRandomFact(dino) {
         let fact = '';
+
         // add specific fact paragraph text for pigeon tile, else add random facts
         if (dino.species == 'Pigeon') {
             fact = dino.fact;
         } else {
+            // array of keys with relevant facts
             const keys = ['weight', 'height', 'diet', 'where', 'when', 'fact', 'human_diet'];
             
             // check if weight property exists on human
             if ('weight' in _human) {
                 // check if weight property is a number
                 if (!isNaN(_human.weight)) {
+                    // all ok, add to key pool
                     keys.push('human_weight');
                 }
             }
@@ -150,14 +169,15 @@ const UIHandler = (function() {
             if ('height' in _human) {
                 // check if height property is a number
                 if (!isNaN(_human.height)) {
+                    // all ok, add to key pool
                     keys.push('human_height');
                 }
             }
 
             // randomize keys
             const key = _getRandomElement(keys);
-            console.log(key);
 
+            // switch fact based on key
             switch (key) {
                 case 'weight':
                     fact = `${dino.species} weighs ${dino.weight} lbs.`;
@@ -209,6 +229,7 @@ const UIHandler = (function() {
 
         // create the dino tile grid
         for (let dino of _dinos) {
+            // for each dino, create tile
             const gridElement = document.createElement('div');
             gridElement.className = 'grid-item';
 
@@ -232,6 +253,8 @@ const UIHandler = (function() {
     }
 
     // create the human tile
+    // the human could have been treated as a dino (and injected into the dino data and iterated
+    // over in _createDinoGrid(), but treating it as a seperate element allows for more control
 
     function _addHumanTile () {
         const humanTile = document.createElement('div');
@@ -239,6 +262,7 @@ const UIHandler = (function() {
 
         // add headline with human name
         const headlineElement = document.createElement('h3');
+        // add name if available, else add species name (human)
         headlineElement.textContent = _human.name || _human.species;
         humanTile.appendChild(headlineElement);
         
@@ -271,10 +295,14 @@ const UIHandler = (function() {
 
         // using a constructor function instead of Object.create() in order to initialize the object with properties
         _human = Object.assign(new Human(), { name: name, weight: weight, height: height, diet: diet });
-        // console.log(_human);
 
+        // remove the form
         form.remove();
+
+        // display the grid
         _createDinoGrid();
+
+        // add the human tile
         _addHumanTile();
     }
 
@@ -298,5 +326,8 @@ const UIHandler = (function() {
 
 })();
 
+// add the dino data to the ui handler module
 UIHandler.setDinos(dinos);
+
+// attach the event listener as soon as dom content is loaded
 document.addEventListener('DOMContentLoaded', UIHandler.init);
