@@ -103,9 +103,33 @@ const UIHandler = (function() {
         return `A ${dino.species} is ${taller} times taller than you!`;
     }
 
-    function _compareX () {
-        // stub
+    function _compareDiet (dino) {
+
+        const dietVariations = {
+            Omnivor: {
+                omnivor: `You both eat everything, be it plants or meat.`,
+                carnivor: `Watch out, ${dino.species} might eat you!`,
+                herbavor: `Nothing to fear from ${dino.species}, it eats plants only.`
+            },
+            Carnivor: {
+                omnivor: `${dino.species} likes to eat everything.`,
+                carnivor: `You both eat meat exclusively.`,
+                herbavor: `${dino.species} eats plants only, in stark contrast to you.`
+            },
+            Herbavor: {
+                omnivor: `${dino.species} eats everything, does that include you?`,
+                carnivor: `Watch out, ${dino.species} might eat you!`,
+                herbavor: `You both eat plants exclusively.`
+            },
+        }
+
+        // get the right set of diets for the human diet
+        const dietVariation = dietVariations[_human.diet];
+        // get the right fact for the current dino
+        return dietVariation[dino.diet];
     }
+
+    // generate a single random fact per dinosaur
 
     function _generateRandomFact(dino) {
         let fact = '';
@@ -113,7 +137,7 @@ const UIHandler = (function() {
         if (dino.species == 'Pigeon') {
             fact = dino.fact;
         } else {
-            const keys = ['weight', 'height', 'diet', 'where', 'when', 'fact'];
+            const keys = ['weight', 'height', 'diet', 'where', 'when', 'fact', 'human_diet'];
             
             // check if weight property exists on human
             if ('weight' in _human) {
@@ -157,6 +181,10 @@ const UIHandler = (function() {
                 
                 case 'fact':
                     fact = dino.fact;
+                    break;
+
+                case 'human_diet':
+                    fact = _compareDiet(dino);
                     break;
 
                 case 'human_height':
